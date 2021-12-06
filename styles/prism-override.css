@@ -1,0 +1,29 @@
+/* Must beat out the specificity where these are defined in Prism.js
+which is under the selector "div.toolbar .toolbar-item button" */
+div.toolbar .toolbar-item button.copy-to-clipboard-button {
+  padding: 0.2em 1em;
+  margin: 0.5em;
+  box-shadow: none;
+}
+
+/* div.toolbar
+  .toolbar-item
+  button.copy-to-clipboard-button[data-copy-state="copy-success"] {
+  background: #dcde9f;
+} */
+
+code[class*="language-"],
+pre[class*="language-"] {
+  font-size: 0.8rem;
+}
+
+.line-highlight::before,
+.line-highlight[data-end]::after {
+  background-color: inherit;
+  box-shadow: none;
+  color: #333;
+}
+
+div.code-toolbar > .toolbar > .toolbar-item > button:hover {
+  background: #eae2dc;
+}

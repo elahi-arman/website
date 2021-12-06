@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>COEN 161 - Fetching Data</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dosis&family=Zen+Kurenaido&family=Fira+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/vendor/prism/prism.css" />
+    <link rel="stylesheet" href="/styles/reset.css" />
+    <link rel="stylesheet" href="/styles/base.css" />
+    <link rel="stylesheet" href="/styles/prism-override.css" />
+
+    <script defer src="/vendor/prism/prism.js" data-manual></script>
+    <script defer src="/scripts/highlight.js"></script>
+  </head>
+
+  <body class="language-js">
+    <main id="top">
+      <h1>Fetching Data</h1>
+      <section class="flex-left-content">
+        <nav>
+          <h2>On this page</h2>
+          <ul id="toc">
+            <li><a href="#what-is">What is Fetch?</a></li>
+            <li><a href="#using-fetch">Using Fetch</a></li>
+            <li><a href="#get-requests">GET Requests</a></li>
+            <li><a href="#errors">Handling Errors</a></li>
+            <li><a href="#cleaning">Cleaning Code</a></li>
+            <li><a href="#post-requests">POST Requests</a></li>
+          </ul>
+        </nav>
+
+        <div>
+          <p>
+            This page goes over some practical applications with the fetch
+            function. This page is focused on giving insight into fetch() calls
+            and patterns. CORS will be a whole other page, so we won't go over
+            those sorts of issue.
+          </p>
+
+          <h2 id="what-is">What is fetch?</h2>
+          <p>
+            Fetch is <em>generally</em> used as a function to make HTTP requests
+            from JavaScript. The Fetch API does more than just making HTTP
+            requests using the
+            <a
+              href="https://developer.mozilla.org/en-US/docs/Web/API/fetch"
+              target="_blank"
+              >fetch function</a
+            >, but when referring to fetch, I've seen people mainly refer to the
+            function itself. The
+            <a
+              href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API"
+              target="_blank"
+              >entire API</a
+            >
+            is written into a browser's JavaScript engine. The Node.js engine
+            doesn't include this API, but you can npm install the non-standard
+            node-fetch library to bring fetch functionality to servers.
+          </p>
+
+          <p>
+            The fetch function is used to make HTTP requests after the page has
+            been loaded. For some webpages, a single HTML page is the entire
+            content. We wouln't use fetch to load a webpage like that. But
+            suppose, your page has to request 30MB of data. If you attached this
+            data to the HTML page, your page would take a long time to load.
+            Instead, we can send an initial, incomplete page and then request
+            the additional data using fetch.
+          </p>
+
+          <p>
+            Aside from loading data, you may send additional HTTP requests to
+            submit or update data on a server without using a
+            <a
+              href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement"
+              target="_blank"
+              ><code>form</code></a
+            >. Although HTML forms are a proven way to send data to a server,
+            they do cause a full page reload so it looks a little janky when
+            making small incremental changes to data on a server. If you had to
+            reload the page everytime you changed from light to dark mode on a
+            page, it could get a bit annoying.
+          </p>
+        </div>
+      </section>
+
+      <h2 id="using-fetch">Using Fetch</h2>
+      <p>Here's the most simple way to:</p>
+
+      <ol>
+        <li>Make an HTTP request using fetch</li>
+        <li>Parse the response</li>
+        <li>Use the response.</li>
+      </ol>
+
+      <pre>
+          <code>
+          fetch('http://example.com/movies.json')    // make an HTTP request using fetch
+              .catch(error => console.log({error}))  // handle server unreachable
+              .then(response => response.json())     // parse the response  
+              .then(data => console.log({data}))     // log the response
+          </code>
+    </pre>
+
+      <p>
+        First, fetch some JSON data from the http://example.com server. The
+        fetch function returns a Promise that will either:
+      </p>
+      <ol>
+        <li>
+          resolve with
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/API/Response"
+            target="_blank"
+            >an object that represents an HTTP request</a
+          >.
+        </li>
+        <li>
+          reject with a <code>TypeError</code> if there was trouble reaching the
+          server.
+        </li>
+      </ol>
+
+      <p>
+        When there's an error which makes the server unreachable when the server
+        can't be reached either for a
+        <a
+          href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors"
+          target="_blank"
+          >CORS issue</a
+        >
+        or a network error. In this case, we log the error, which is not really
+        useful to end users but it's enough for now. This is written in the
+        <code>.catch()</code> statement on the second line.
+      </p>
+
+      <p>
+        The fetch function doesn't directly return a body because not all HTTP
+        requests return a body. Sometimes only the HTTP status code is sent back
+        because that's not enough to convey the result. If you a server sends a
+        404 response, clients know that HTTP server didn't find the requested
+        resource so parsing the body is unnecessary.
+      </p>
+
+      <p>
+        For this simple example, we'll assume the request either doesn't connect
+        to the server or is returned a JSON body. To extract and interpret the
+        body of an HTTP request, the fetch API provides a few methods. For our
+        class, we'll most likely only need to interpret JSON responses, so the
+        response.json function will be enough.
+      </p>
+
+      <h2 id="get-requests">Making GET Requests</h2>
+
+      <p>
+        If you want to get a bit fancier and interpret the server's response
+        correctly, you can check the headers that are sent back. In this next
+        example, we will:
+      </p>
+
+      <ol>
+        <li>Call the fetch function with to the URL "/161/fetch/echo"</li>
+        <li>
+          Once the server has started responding, check if the response is okay
+        </li>
+        <ol>
+          <li>If the response is okay</li>
+          <ol>
+            <li>
+              if the server tells us this is JSON data, interpret the body as
+              json
+            </li>
+            <li>in all other cases, interpret the body as text</li>
+          </ol>
+          <li>
+            if the response is not okay, return a rejected Promise with the
+            status code
+          </li>
+        </ol>
+        <li>Once we've interpreted the body, log the data</li>
+      </ol>
+
+      <pre>
+          <code>
+          fetch("/161/fetch/echo")
+            .then((response) => {
+
+              // use the response.ok property (a boolean to check the status code)
+              // is between 200 and 299
+              if (response.ok) {
+              
+                  // check the headers of a response by using the response.headers
+                  // property. to retrive the value of a single header, use the 
+                  // response.headers.get method
+                  if (response.headers.get('Content-Type') === 'application/json') {
+                      return response.json()
+                  } else {
+                      // if the response isn't meant to be viewed as json, interprett
+                      // itt as text
+                      return response.text()
+                  }
+              } 
+              
+              // when the response is not between 200 and 299, return a rejected 
+              // promise with the status code. By returning the rejected promise, we
+              // will trigger the next .catch() in the chain.
+              return Promise.reject(response.status)
+            }).then((data) => {
+                console.log(data)
+            })
+          </code>
+    </pre>
+
+      <p>
+        Reviewing this code block, here's a couple of things that we've learned
+      </p>
+      <ol>
+        <li>
+          Use <code>response.ok</code> to check if the status code is between
+          200 and 299, that it was a successful response
+        </li>
+        <li>
+          Use <code>response.headers</code> to check the value of headers from
+          the server
+        </li>
+        <li>
+          Use <code>response.json()</code> when we should interpret the body as
+          json
+        </li>
+        <li>
+          Use <code>response.text()</code> when we should interpret the body as
+          plain text
+        </li>
+        <li>
+          Use <code>Promise.reject(response.status)</code> to call the next
+          <code>.catch()</code> in a Promise chain.
+        </li>
+      </ol>
+
+      <p>
+        If your response isn't JSON, you may want one of these other methods to
+        extract the body:
+      </p>
+
+      <ol>
+        <li>
+          <code>response.formData()</code> - when the body is form-encoded data
+        </li>
+        <li><code>response.text()</code> - when the body is plain text</li>
+        <li>
+          <code>response.blob()</code> - when the body is binary data (like an
+          image or video)
+        </li>
+      </ol>
+
+      <p>
+        All three of these functions and response.json() return a Promise that
+        will resolve only once the <strong>entire body</strong> of the HTTP
+        response has been read. We can't use
+        <code>JSON.stringify()</code> because the Promise returned from
+        <code>fetch()</code>
+        is resolved as soon as the server responds with headers. Since the HTTP
+        response may be sent back in multiple small chunks, use the above
+        functions so you don't have to handle the code to reassemble the small
+        chunks.
+      </p>
+
+      <h2 id="errors">Handling Fetch Errors</h2>
+
+      <p>
+        What sorts of errors do we have to deal with and where? Because each
+        <code>.then()</code> has its own set of errors, we'll start by dealing
+        with the errors from each <code>.then()</code> independently.
+      </p>
+
+      <pre>
+          <code>
+          fetch("/161/fetch/echo")
+          .catch((networkError) => {
+            // this block of code is only called when the server could not 
+            // be reached
+            console.log('Could not connect to server, please try again later', {networkError})
+            
+            // add an error state to prompt the user to try again
+            document.querySelector('#submit-button').classList.add('error')
+          })
+          .then((response) => {
+            if (response.ok) {
+                if (response.headers.get('Content-Type') === 'application/json') {
+                    return response.json()
+                } else {
+                    return response.text()
+                }
+            } 
+            
+            return Promise.reject(response.status)
+          }).then((data) => {
+            console.log(data)
+          }).catch((serverError) => {
+            // errors handled by this catch block will have all reached the server.
+            // so either the response.json() went wrong or the Promise.reject() was
+            // called. If the response.json() went wrong, we'll get aa 
+            if (serverError instanceof SyntaxError) {
+                console.log('Server sent back malformed JSON')
+                // add a disabled state because the server isn't sending back the correct format for JSON.
+                document.querySelector('#submit-button').disabled = true
+            } else {
+                console.log()
+                if (serverError === 400) {
+                console.log('Server did not accept our request')
+                // add a disabled state because we aren't sending correct requests
+                    document.querySelector('#submit-button').disabled = true
+                } else if (serverError === 404) {
+                console.log('Server did not find the resource')
+                document.querySelector('#warning').textContent = "Couldn't find any data"
+                } 
+            }
+          })
+          </code>
+    </pre>
+      <p>In this code block, we used:</p>
+      <ol>
+        <li>
+          A .<code>catch()</code> between the call to <code>fetch()</code> and
+          the first <code>.then()</code> to isolate any network errors
+        </li>
+        <li>
+          A <code>.catch()</code> after receiving a response to 400/500
+          responses
+        </li>
+        <ol>
+          <li>
+            Use the <code>if (serverError instance of SyntaxError)</code> to
+            check for JSON errors
+          </li>
+          <li>
+            Use the the <code>statusCode</code> to identify other types of
+            errors.
+          </li>
+        </ol>
+      </ol>
+
+      <p>
+        Part of Web Development's reality is its unreliability. You can trust
+        neither clients nor servers so you'll be writing a lot of error checking
+        code. By splitting up the errors into two catch blocks, we isolate which
+        errors we deal with when. This makes our functions smaller and easier to
+        understand.
+      </p>
+      <p>
+        Although error handling is important, we won't be including error
+        handling in most examples. Error Handling is solved on a case by case
+        basis, so writing generic solutions won't be too helpful without large
+        examples.
+      </p>
+
+      <h2 id="cleaning">Cleaning Fetch Code</h2>
+
+      <p>
+        That last code block got quite long so, I like to collapse the following
+        utility functions for readability.
+      </p>
+
+      <pre>
+          <code>
+            const handleResponse = (response) => {
+              if (response.ok) {
+                if (response.headers.get('Content-Type') === 'application/json') {
+                  return response.json()
+                } else {
+                  return response.text()
+                }
+              } 
+              
+              return Promise.reject(response.status)
+            }
+                
+            const logData = (data) => {
+              console.log(data)
+            }
+          </code>
+    </pre>
+
+      <p>
+        In most servers that you create, you'll start to identify the patterns
+        that you like to code with so keeping around a function like this is a
+        very good idea.
+      </p>
+
+      <h2 id="#post-requests">POST Requests</h2>
+
+      <p>
+        If you want to create data on a server, we should be sending a POST
+        request. It's not much different from sending a GET request. The main
+        change is that we'll be using the second parameter of
+        <code>fetch()</code>:
+      </p>
+
+      <ol>
+        <li>set the request method</li>
+        <li>tell the server we're sending json data</li>
+        <li>send json data</li>
+      </ol>
+
+      <pre>
+        <code> 
+          // assume this endpoint receives any HTTP request method
+          fetch("/161/fetch/echo", {
+            // tell the browser to send a POST request
+            method: "POST",
+            headers: {
+            // tell the server we are sending JSON
+            'Content-Type': "application/json"
+            },
+            // we can't transfer a raw Object, only
+            // Buffers or Strings so stringify
+            // the object before sending it off
+            body: JSON.stringify({ id: "arman" })
+          }).then(handleResponse).then(logData)
+        </code>
+      </pre>
+
+      <p>
+        The <code>fetch()</code> call has some very good defaults, like
+        defaulting to a GET request, so the first example didn't require setting
+        up any non default options.
+      </p>
+
+      <p>
+        Any of the things we'd do with a GET response, we can do with a POST
+        response. We can similarly change the method from POST to PUT or DELETE
+        as long as the server is okay with it.
+      </p>
+
+      <h2>Additional Resources</h2>
+      <nav>
+        <a
+          href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch"
+          >MDN - Using Fetch
+        </a>
+      </nav>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>COEN 161 - Promises Basic</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dosis&family=Zen+Kurenaido&family=Fira+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/vendor/prism/prism.css" />
+    <link rel="stylesheet" href="/styles/reset.css" />
+    <link rel="stylesheet" href="/styles/base.css" />
+    <link rel="stylesheet" href="/styles/prism-override.css" />
+
+    <script defer src="/vendor/prism/prism.js" data-manual></script>
+    <script defer src="/scripts/highlight.js"></script>
+  </head>
+  <body class="language-js">
+    <main id="top">
+      <h1>Promises In Code</h1>
+      <section class='flex-left-content'>
+      <nav>
+        <h2>In this series</h2>
+        <ul>
+          <li class="current-page">Promises in Code</li>
+          <li><a href="./patterns.html">Promise Patterns</a></li>
+        </ul>
+        <h2>On this page</h2>
+        <ul id="toc">
+          <li><a href="#from-scratch">Promises from Scratch</a></li>
+          <li><a href="#using-values">Values from Promises</a></li>
+          <li><a href="#in-node-js">Promises from Node.js</a></li>
+          <li><a href="#synchronizing-promises">Synchronizing Promises</a></li>
+          <li><a href="#chaining">Chaining</a></li>
+        </ul>
+      </nav>
+      <!-- Promises from Scratch -->
+      <div id="from-scratch">
+        <p>
+          Promises are the primary way in this class that we'll be dealing with
+          asynchronicity. We've already gone over theoretically why they're
+          better, but this page will go over practical ways to use promises for
+          this class.
+        </p>
+        <h2>1. Creating a Promise from Scratch</h2>
+        <p>
+          Let's start with creating a promise from scratch by using the
+          <code>new Promise()</code> constructor. The constructor takes in two
+          <em>callbacks</em>, one for a success state and one for an error
+          state. If the Promise succeeds in getting a value, JavaScript calls
+          the <code>onFulfilled</code> callback. If the
+          <code>Promise</code> errors, Javascript calls the
+          <code>onRejected</code> callback. JavaScript guarantees that it will
+          call one of the two functions
+        </p>
+        <pre id="ex-constructor">
+        <code>
+        const alwaysFulfill = new Promise(function(fulfill, reject) {
+          fulfill(5)
+        });
+
+        const alwaysReject = new Promise(function(fulfill, reject) {
+          reject(new Error('What did you expect?'))
+        })
+        </code>
+      </pre>
+    </div>
+  </section>
+        <p>
+          If you copy and paste this code, Javascript rejects the
+          <code>alwaysReject Promise</code>, and vomits a wall of text with the
+          string <code>UnhandlerPromiseRejectionWarning</code>. This means there
+          was a <code>Promise</code> in our code and we didn't tell JavaScript
+          how to handle rejection.
+        </p>
+      
+    
+        <p>
+          Your responsibility is to tell JavaScript how to handle
+          <em>every single</em> <code>Promise</code> fulfillment and
+          <em>every single</em> <code>Promise</code> rejection. Tell JavaScript
+          how to handle fulfillment using the <code>.then(callback)</code>. Tell
+          JavaScript how to handle rejection using the
+          <code>.catch(callback)</code>.
+        </p>
+        <pre id="ex-callbacks" data-line="1">
+        <code>
+        const randomPromise = new Promise(function(fulfill, reject) {
+          const probability = 0.5;
+          if (Math.random() &lt; 0.5) {
+            fulfill(probability)
+          } else {
+            reject(1 - probability)
+          }
+        });
+
+        randomPromise
+          // tell JavaScript how to handle fulfillment
+          .then(function(success) {
+            // the success parameter will be the input to the fulfill function
+            // from the Promise constructor
+            console.log('success is a(n)', typeof success)
+            console.log(`We succeeded with a ${success} probability`)
+          })
+          // tell JavaScript how to handle rejection
+          .catch(function(error) {
+            // the error parameter will be the input to the reject function
+            // from the Promise constructor
+            console.log('error is a(n)', typeof error)
+            console.log(`We failed with a ${error} probability`)
+          })
+        </code>
+      </pre>
+        <p>
+          Whatever value is passed into the <code>fulfill</code> function in the
+          <code>Promise</code> constructor will be the input to the
+          <code>.then</code> callback. Whatever value is passed into the
+          <code>reject</code> function in the <code>Promise</code> constructor
+          will be the input to the <code>.catch</code> callback. Both
+          <code>fulfill</code> and <code>reject</code> from the
+          <code>Promise</code> constructor take exactly 1 parameter. To pass
+          multiple values, you must return an <code>Object</code>.
+        </p>
+        <pre id="ex-obj-fulfillment">
+        <code>
+        const randomPromise = new Promise(function(fulfill, reject) {
+          const randomValue = Math.random()
+          const probability = 0.5;
+          if (randomValue &lt; 0.5) {
+            fulfill({
+              probability, 
+              randomValue
+            })
+          } else {
+            reject({
+              probability: 1 - probability,
+              randomValue
+            })
+          }
+        });
+
+        randomPromise
+          .then(function(success) {
+            // Notice how the type differs from the previous example
+            console.log('success is a(n)', typeof success)
+            console.log(`We succeeded with a ${success.probability} probability. The value was ${success.randomValue}`)
+          })
+          .catch(function(error) {
+            console.log('error is a(n)', typeof error)
+            console.log(`We failed with a ${error.probability} probability. The value was ${error.randomValue}`)
+          })
+        </code>
+      </pre>
+      </article>
+      <article id="using-values">
+        <h2>2. Using values from Promises</h2>
+        <p>
+          One unfortunate aspect of asynchronous programming is that
+          asynchronicity is contagious. Once your code becomes asynchronous, it
+          quickly spreads to the rest of your code. If you need a value from a
+          <code>Promise</code>, you <strong>must</strong> use the value inside
+          the fulfillment of that <code>Promise</code>.
+        </p>
+        <pre id="ex-outside-variable">
+        <code>
+        let value;
+        const p = new Promise(function(fulfill, reject) {
+          fulfill(5)
+        });
+
+        p.then(function(five) {
+          console.log('Promise fulfilled with a(n)', typeof five)
+          value = five;
+        })
+
+        console.log(value) // what do you think will be printed?
+        </code>
+      </pre>
+        <p>Let's examine the order of operations:</p>
+        <ol>
+          <li>Declare the variable <code>value</code></li>
+          <li>
+            Declare the variable <code>p</code>. Initialize <code>p</code> with
+            a <code>Promise</code> that always fulfills
+          </li>
+          <li>
+            The Browser/Node.js starts running the Promise code. It immediately
+            fulfills with the value <code>5</code>.
+          </li>
+          <li>
+            Register but <strong>do not call</strong> a
+            <code>fulfillment</code> handler which prints out a string and
+            assigns <code>5</code> to <code>value</code>
+          </li>
+          <li>Print out the <code>value</code> which is yet to be defined</li>
+          <li>Run the <code>.then</code> handler.</li>
+        </ol>
+        <p>
+          Because asynchronous code is guaranteed to run after synchronous code,
+          this code never prints the value of <code>5</code>. The only way to
+          use a value from a <code>Promise</code> is to consume it
+          <em>after</em> the <code>Promise</code> has executed. The only way to
+          do this, is to use the value in the <code>.then</code> or
+          <code>.catch</code> callback.
+        </p>
+      </article>
+
+      <!-- PROMISES IN NODE.JS-->
+      <article id="in-node-js">
+        <h2>3. Promises from Node.js</h2>
+        <p>
+          Most likely, you won't be creating <code>Promises</code> from scratch.
+          You wlll be executing a function that returns a <code>Promise</code>.
+          Let's examine how that works using
+          <a
+            href="https://nodejs.org/docs/latest-v14.x/api/fs.html#fs_fspromises_readfile_path_options"
+            target="_blank"
+            >fs.readFile</a
+          >. According to the documentation, <code>fs.readFile</code>
+        </p>
+        <blockquote>Fulfills with the contents of the file.</blockquote>
+        <p>
+          Once the file is done reading, JavaScript calls the callback passed
+          into
+          <code>.then</code> with a value containing he contents of the file:
+        </p>
+
+        <!-- EXAMPLE: READING FILE WITH ONLY SUCCESS -->
+        <pre id="ex-read-file-success">
+        <code>
+        // import the promises version of the Node standard fs module
+
+        const fs = require('fs').promises;
+        // specifying the encoding with utf-8 guarantees that fileContents
+        // will be a string
+        fs.readFile('./my-file', { encoding: 'utf-8'})
+          .then(function(fileContents) {
+            console.log(`File contents is a ${typeof fileContent}`)
+            console.log(fileContents)
+          })
+        </code>
+      </pre>
+        <p>
+          When we're using <code>Promises</code> we will rarely use the
+          constructor. We are much more likely to call a function which returns
+          a <code>Promise</code>. The way you use the return value is the same
+          in both cases.
+        </p>
+        <p>
+          Our code is only half done though. We have to still tell JavaScript
+          how to deal with rejection.
+        </p>
+
+        <!-- EXAMPLE: READING FILE WITH ERRORS -->
+        <pre id="ex-read-file-with-errors">
+        <code>
+        const fileName = `./my-file`
+        fs.readFile(fileName, { encoding: 'utf-8'})
+          .then(function(fileContents) {
+            console.log(`File contents is a ${typeof fileContent}`)
+            console.log(fileContents)
+          })
+          .catch(function(err) {
+            if (err.code === "ENOENT") {
+              console.log(`${fileName} doesn't exist`)
+            } else if (err.code === "EISDIR") {
+              console.log(`${fileName} is a directory, use fs.readdir`)
+            } else {
+              console.log(`Encountered an unexpected error ${err}`)
+            }
+          })
+        </code>
+      </pre>
+      </article>
+
+      <!-- SYNCHRONIZING PROMISES -->
+      <article id="synchronizing-promises">
+        <h2>4. Synchronizing Promises</h2>
+        <p>
+          In <a href="#using-values">Section 2</a>, we discussed how to use the
+          value of a Promise in synchronous code. But what if you need to use
+          the value of one <code>Promise</code> as the input to another Promise?
+          If we have two asynchronous Promises, we must <em>chain</em> them
+          together to get the correct execution order.
+        </p>
+        <p>
+          One of the errors that
+          <code>fs.readFile</code> can return is <code>"EISDIR"</code> which is
+          the error code when you try to read a directory using
+          <code>fs.readFile</code>. Instead of logging an error, let's fix this
+          problem in our code. Whenever we <em>catch</em> ourselves reading a
+          directory as a file, we should read it as a directory instead. We can
+          use the
+          <a
+            href="https://nodejs.org/docs/latest-v14.x/api/fs.html#fs_fspromises_readdir_path_options"
+            target="_blank"
+            >fs.readdir</a
+          >
+          to read a directory.
+        </p>
+
+        <!--EXAMPLE: READING FILES/DIRECTORIES WITH CHAINING -->
+        <pre id="ex-read-file-or-dir">
+          <code>
+           const fileName = './my-file';
+           const ListableContents = function(contents, isFile=true) {
+             return { contents, isFile }
+           }
+           
+           fs.readFile(fileName, { encoding: 'utf-8'})
+            .then(function(fileContents) {
+              return ListableContents(fileContents)
+            })
+            .catch(function(err) {
+              if (err.code === "ENOENT") {
+                return null
+              } else if (err.code === "EISDIR") {
+                return fs.readdir(fileName).then(function(files) {
+                  return ListableContents(files, false)
+                })
+              }
+
+              return Promise.reject(err)
+            }).then(function (value) {
+              if (value === null) {
+                console.log(`${fileName} doesn't exist so can't read it`);
+              } else {
+                if (value.isFile) {
+                  value.contents.then(function(contents) {
+                    console.log(`Reading file ${fileName}`)
+                    console.log(contents)
+                  })
+                } else {
+                  value.contents.then(function(contents) {
+                  console.log(`Reading directory ${fileName}. The files inside are: `)
+                    console.log(contents)
+                  })
+                }
+              }
+            }).catch(function(err) {
+                // 3
+                console.log(`Encountered an unexpected error ${err}`)
+            })
+          </code>
+        </pre>
+        <p>
+          This is a pretty large code block, so let's break it down piece by
+          piece.
+        </p>
+
+        <!-- READING FILE -->
+        <h3>4.1 Reading the File</h3>
+        <pre>
+          <code>
+            // 1
+            const ListableContents = function(contents, isFile=true) {
+             return { contents, isFile }
+           }
+           // 2
+           fs.readFile(fileName, { encoding: 'utf-8'})
+            // 3
+            .then(function(fileContents) {
+              return ListableContents(fileContents)
+            })
+            // 4
+            .catch(function(err) {
+              if (err.code === "ENOENT") {
+                return null
+              } else if (err.code === "EISDIR") {
+                // 5
+                return fs.readdir(fileName).then(function(files) {
+                  return ListableContents(files, false)
+                })
+              } 
+               
+              // 6
+              return Promise.reject(err)
+            })
+          </code>
+        </pre>
+        <ol>
+          <li>
+            We start by creating a function that will wrap our value. I think
+            one of the hardest things about JavaScript is keeping track of the
+            structure of an object. I like to write functions which ensure that
+            the structure I want is consistent throughout my program. In this
+            case, we create an object with two keys: <code>isFile</code>, a
+            boolean, and <code>contents</code>, which can be anything.
+          </li>
+          <li>Reading the file, just like we've done before.</li>
+          <li>
+            Tell JavaScript how to deal with fulfillment, we wrap the contents
+            in our <code>ListableContents</code> structure
+          </li>
+          <li>
+            Tell JavaScript how to deal with rejection. When the file doesn't
+            exist, return <code>null</code>. When the file is a directory,
+            return a Promise.
+          </li>
+          <li>
+            Return a Promise that resolves with the files in the directory.
+            Although <code>fs.readdir</code> returns a Promise, the value
+            returned by the <code>else</code> block is the
+            <strong>last</strong> Promise in this chain of promises. The next
+            <code>.then()</code> will be a <code>ListableContents</code> object,
+            never the return value of <code>fs.readdir</code>
+          </li>
+          <li>
+            Reject the Promise in case this was an error that this specific
+            <code>.catch()</code> block doesn't know how to execute.
+          </li>
+        </ol>
+        <p>
+          Whenever you return a value from a <code>.then()</code>, the value
+          becomes <em>Promisified</em>. The return value from a .then() becomes
+          a Promise. This guarantees that any return values from a
+          <code>.then()</code> are received asynchronously. If the value is
+          already a Promise, the wrapping still happens. The same
+          <em>Promisification</em> applies to code wrapped in
+          <code>.catch()</code>. So even though the third comment in the code
+          block is synchronously executed, it is returned as a Promise.
+        </p>
+
+        <!-- PRINTING OUT CONTENTS -->
+        <h3>4.2 Printing out the contents</h3>
+        <pre>
+          <code>
+            // code from Section 4.1 
+            .then(function (value) {
+              if (value === null) {
+                console.log(`${fileName} doesn't exist so can't read it`);
+              } else {
+                if (value.isFile) {
+                    console.log(`Reading file ${fileName}`)
+                    console.log(contents)
+                } else {
+                  console.log(`Reading directory ${fileName}. The files inside are: `)
+                    console.log(contents)
+                }
+              }
+            })
+          </code>
+        </pre>
+        <p>
+          Because both <code>.then()</code> and <code>.catch()</code> return
+          Promises, we can add more <code>.then()</code> to them! If the
+          previous Promise <em>resolved</em> then we get back either a
+          <code>null</code> or a <code>ListingContents</code>. This is hopefully
+          some familiar synchronous code. Since <code>.then()</code> is a
+          function, with no other return value, it returns
+          <code>undefined</code>.
+        </p>
+
+        <h3>4.3 Catch-Alls</h3>
+        <pre>
+          <code>
+            // .then from Section 4.2
+            .catch(function(err) {
+                console.log(`Encountered an unexpected error ${err}`)
+            })
+          </code>
+        </pre>
+        <p>
+          At the very end, we attach a <code>.catch()</code> which catches the
+          rejected Promise from the first <code>.catch()</code>. Any rejected
+          Promise goes to the next <code>.catch()</code> block listed from top
+          to bottom. So if we had a series of <code>.then()</code> we can use a
+          <code>.catch()</code> at the very bottom of the Promise <em>chain</em>
+          to catch all errors. This isn't best practice, but is common in
+          practice.
+        </p>
+      </article>
+
+      <!-- CHAINING -->
+      <article id="chaining">
+        <h2>5. Chaining</h2>
+        <p>
+          Although we use <em>chaining</em> in terms of <code>Promises</code>,
+          the term <em>chaining</em> can be applied to functions as well.
+          Chaining refers to the ability of functions to be called without
+          assigning the value to an intermediate variable.
+        </p>
+        <pre>
+          <code>
+            const array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            // First filter out odd elements, then calculate squares
+            const evenSquares = array.filter(function(element) {
+              return element % 2 === 0
+            }).map(function(element) {
+              return element * element
+            });
+            console.log(evenSquares);
+          </code>
+        </pre>
+        <p>
+          Notice that we immediately call
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map"
+            target="_blank"
+            >map</a
+          >
+          after
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter"
+            target="_blank"
+            >filter</a
+          >, but there is no intermediate variable called <code>evens</code>.
+          This is legal because both <code>map()</code> and
+          <code>filter()</code> return arrays. As long as we can
+          <em>guarantee</em> the return <strong>type</strong> of a function, we
+          can chain functions together. So if we can use <code>then()</code> to
+          chain Promises, and we can only use <code>then()</code> on Promises,
+          that means every <code>then()</code>
+          must return a Promise.
+        </p>
+      </article>
+      <a class="back-to-top" href="#top">Back to Top</a>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>COEN 161 - Promises</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dosis&family=Zen+Kurenaido&family=Fira+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/vendor/prism/prism.css" />
+    <link rel="stylesheet" href="/styles/reset.css" />
+    <link rel="stylesheet" href="/styles/base.css" />
+    <link rel="stylesheet" href="/styles/prism-override.css" />
+
+    <script defer src="/vendor/prism/prism.js" data-manual></script>
+    <script defer src="/scripts/highlight.js"></script>
+  </head>
+  <body class="language-js">
+    <header>
+    </header>
+    <main id="top">
+      <h1>Promise Patterns</h1>
+      <section class='flex-left-content'>
+      <nav>
+        <h2> In this series </h2>
+        <ul>
+          <li><a href="./code-basics.html">Promises in Code</a></li>
+          <li class="current-page">Promise Patterns</li>
+        </ul>
+        <h2> On this page </h2>
+        <ul id="toc">
+          <li><a href="#promise-all-settled">Multiple Promises</a></li>
+          <li><a href="#promise-cleaning">Cleaning Code</a></li>
+          <li><a href="#promise-race">Racing Promises</a></li>
+        </ul>
+      </nav>
+
+      <!-- Working with multiple independent promises-->
+      <div id="promise-all-settled">
+      <aside class="warning">
+        <header>⚠️ WARNING</header>
+        This page is not a good resource if you haven't fully understood the
+        previous two pages. You might find some benefits, but make sure you have
+        a good understanding of especially the Promise syntax as we'll be taking
+        advantage of it quite heavily.
+      </aside>
+      <p>
+        This page is meant to help you write more legible Promise based code and
+        to help you do more complex promise based tasks. Like all things in this
+        class, it boils down too functions. Functions aren't just a tool for
+        code reuse, they give a name to a block of code
+      </p>
+        <h2>1. Multiple Independent Promises</h2>
+        <aside>
+          <header>ℹ️ TL;DR</header>
+          Use <code>Promise.allSettled</code> to wait on multiple independent
+          Promises to finish before continuing execution.
+        </aside>
+        <p>
+          One of the beautiful parts of JavaScript is that the hard problem of
+          scheduling multiple things at once are not your problem. JavaScript
+          delegates long running tasks to the Operating System (OS) through
+          asynchronous functions from the JavaScript environment.
+        </p>
+      </div>
+    </section>
+        <p>
+          On the
+          <a href="/pages/promises/code-basics.html#ex-read-file-or-dir"
+            >previous page</a
+          >
+          we went through an example where we synchronized two promises:
+        </p>
+        <ol>
+          <li>
+            First, we tried to read a file using <code>fs.readFile()</code>
+          </li>
+          <li>
+            Then we printed out the contents in a separate <code>.then()</code>
+          </li>
+        </ol>
+        <p>
+          This is an example of two <em>dependent</em> promises. The first
+          promise is rersponsible for reading the file and the second is
+          responsible for printing the contents. You cannot print out the
+          contents without first reading the file. We use
+          <code>.then()</code> to make sure the execution happens in ordere.
+        </p>
+        <p>
+          But what if we don't care about the order of Promises, we just want
+          too knowo when all the Promises are done. Let's consider the case of
+          reading a directory of HTML files and replacing every
+          <code>&lt;i&gt;</code> tag with <code>&lt;em&gt;</code>. To accomplish
+          this task, we could:
+        </p>
+        <ol>
+          <li>
+            Read the directory of HTML files using <code>fs.readdir()</code>
+          </li>
+          <li>Loop through each file in the directory</li>
+          <ol>
+            <li>
+              Verify the file is an HTML file (maybe by using the file
+              extension).
+            </li>
+            <li>Read the contents of each HTML file.</li>
+            <li>Find and replace each <code>&lt;i&gt;</code></li>
+            <li>Write each file with the replaced tags</li>
+            <li>
+              After everything is done, print out the number of times in each
+              file a replacement was made sorted from most to least.
+            </li>
+          </ol>
+        </ol>
+        <p>
+          Before jumping into code, let's see which steps depend on each other.
+          1 <em>must</em>
+          be finished before anythinig else happens. So all steps from 2 onwards
+          must happen in the chain of Promises following 1.
+        </p>
+        <p>
+          Each file is independent. We don't need to wait for the first file to
+          finish writing to start working on the second file. Each file is doing
+          its own thing. But the reading, replacement, and writing of a single
+          file must all happene in sequence. Printing the number of replacements
+          must be done after <em>all</em> Promises are done because we have to
+          sort them.
+        </p>
+        <pre id="ex-read-directory">
+          <code>
+            // Read the directory of HTML files using fs.readdir()
+            const fs = require('fs/promises')
+            const directory = 'not-semantically-correct-html-files'
+            fs.readdir(directory)
+              .then(fileNames => {
+                // do something with files.
+              }).catch(err => {
+                if (err.code === "ENOENT") {
+                  console.log(`${directory} could nto be found`)
+                } else {
+                  console.log('An error occurred', err)
+                }
+              })
+          </code>
+        </pre>
+        <p>
+          With our very succinctly named directory, we call
+          <code>fs.readdir</code>. I've added a <code>.catch()</code> so you can
+          see an example of error handling. I also used an arrow function just
+          for brevity.
+        </p>
+        <pre>
+          <code>
+            // Loop through each file in the directory AND
+            // verify the file is an HTML file
+            fs.readdir(directory).then(fileNames => {
+              const htmlFiles = [];
+              for (const name of fileNames)  {
+                if (name.endsWith('.html')) {
+                  htmlFiles.push(name)
+                }
+              }
+            }) 
+            // catch() is over here
+          </code>
+        </pre>
+        <p>
+          This is some nice synchronous code. I like to make a lt of new
+          variables because they let me update the names of things as I go. If
+          you're worried about performance of creating a new array, remember
+          that this probably takes nanoseconds to execute. Your CPU can spare a
+          few cycles to make the code easier to read.
+        </p>
+        <pre id="ex-read-files-in-dir">
+          <code>
+            // Read the contents of each HTML file.
+            fs.readdir(directory).then(fileNames => {
+              const htmlFiles = [];
+              for (const name of fileNames)  {
+                if (name.endsWith('.html')) {
+                  htmlFiles.push(name)
+                }
+              }
+
+              for (const htmlFile of htmlFiles) {
+                fs.readFile(htmlFile)
+              }
+            }) 
+            // catch() is over here
+          </code>
+        </pre>
+        <p>
+          You might have previously returned after the <code>fs.readFile</code>,
+          but we won't be doing that. If we returned inside this loop, we would
+          only read the firstt file. Our next step here is to wait for the file
+          to finish being read and once we have the contents, we can replace and
+          then write out the new contents.
+        </p>
+        <pre id="ex-replace-and-write-files">
+          <code>
+            // Find and replace each &lt;i&gt;
+            // Write each file with the replaced tags
+            fs.readdir(directory).then(fileNames => {
+              const htmlFiles = [];
+              for (const name of fileNames)  {
+                if (name.endsWith('.html')) {
+                  htmlFiles.push(name)
+                }
+              }
+
+              for (const htmlFile of htmlFiles) {
+                const readHTMLFile = fs.readFile(htmlFile).then(fileContents => {
+                  // don't worry too much about the logic in here, focus on the Promises
+                  let tagsReplaced = fileContents.split('&lt;i&gt;').length;
+                  const replacedContents = fileContents
+                      .replaceAll('&lt;i&gt;', '&lt;em&gt;')
+                      .replaceAll('&lt;/i&gt;','&lt;/em&gt;')
+                  const rewriteHTMLFile = fs.writeFile(htmlFile, replacedContents)
+                    .then(() => {
+                      return tagsReplaced;
+                    })
+                  return rewriteHTMLFile
+                })
+              }
+            }) 
+            // catch() is over here
+          </code>
+        </pre>
+        <p>
+          Now our function is getting complex. I assigned each Promise to a
+          variable. Even though variables may be unused, it'll help us keep
+          track of Promises.
+        </p>
+
+        <p>
+          Once the OS has finished <code>readHTMLFile</code>
+          <em>then</em> JavaScript will count and replace all the tags,
+          synchronously. After that, JavaScript tells the OS to execute the
+          <code>rewriteHTMLFile</code> Promise. Once the OS has written the
+          file, <em>then</em> the <code>tagsReplaced</code> are returned.
+        </p>
+        <p>
+          Here are some questions for you to think about. You can click on them
+          to reveal my answer.
+        </p>
+        <ol class="q-and-a">
+          <li>
+            <details>
+              <summary>
+                Why not return <code>tagsReplaced</code> instead of the
+                <code>rewriteHTMLFile</code> Promise?
+              </summary>
+              <p>
+                The value of <code>tagsReplaced</code> is available, but we want
+                our program to finish <em>successfully</em> writing the files
+                before any other Promise uses the <code>tagsReplaced</code>.
+                What if one of the files fails to write? We need to communicate
+                that.
+              </p>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary>
+                What will be the input type to the callback of another
+                <code>.then</code> to the <code>readHTMLFile</code> Promise?
+              </summary>
+              <p>
+                Since the first <code>.then</code> returns the
+                <code>rewriteHTMLFile</code>Promise. So adding another
+                <code>.then</code> will get the return value of
+                <code>rewriteHTMLFile</code> The return value of the
+                <code>rewriteHTMLFile</code>will be whatever is returned from
+                the <code>.then</code> attached to the
+                <code>fs.writeFile</code> call. What's returned from that call?
+                <code>tagsReplaced</code>
+                which is a number.
+              </p>
+              <em
+                >Sorry if this isn't super clear to read, it is a first draft,
+                hopefully the diagram below helps.</em
+              >
+              <p>
+                This is all just a roundabout way of saying that Promises return
+                whatever is in the <em>final</em> <code>.then</code> in the
+                chain of Promises
+              </p>
+              <figure>
+                <img
+                  src="./images/read-then-rewrite-file.svg"
+                  alt="fs.readFile leads to fs.writeFile leads to returning tagsReplaced"
+                />
+              </figure>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary>
+                Does the <code>readDirectory</code> Promise return anything?
+              </summary>
+              <p>
+                It currently returns undefined, as a Promise. So you can still
+                use a
+                <code>.then</code> to synchronize additinal Promises, but it
+                doesn't currently output a value.
+              </p>
+            </details>
+          </li>
+          <li>
+            <details>
+              <summary>
+                Will another listener ever be able to access the value of
+                <code>fs.readFile(htmlFile)</code>?
+              </summary>
+              <p>
+                Not as it's written here. Because we don't assign
+                <code>fs.readFile</code> to a variable, the value of that
+                Promise cannot be accessed. Anyone who tries to add a
+                <code>.then</code> to the <code>readHTMLFile</code> Promise can
+                <strong>ONLY</strong> ever retrieve the last value in the chain.
+              </p>
+            </details>
+          </li>
+        </ol>
+        <pre data-line="11,25,28" id='ex-promise-all'>
+          <code>
+            // After everything is done, print out the number of times in each
+            // file a replacement was made sorted from most to least.
+            fs.readdir(directory).then(fileNames => {
+              const htmlFiles = [];
+              for (const name of fileNames)  {
+                if (name.endsWith('.html')) {
+                  htmlFiles.push(name)
+                }
+              }
+
+              const readFilePromises = [];
+              for (const htmlFile of htmlFiles) {
+                const readHTMLFile = fs.readFile(htmlFile).then(fileContents => {
+                  let tagsReplaced = fileContents.split('&lt;i&gt;').length;
+                  const replacedContents = fileContents
+                      .replaceAll('&lt;i&gt;', '&lt;em&gt;')
+                      .replaceAll('&lt;/i&gt;','&lt;/em&gt;')
+                  const rewriteHTMLFile = fs.writeFile(htmlFile, replacedContents)
+                    .then(() => {
+                      return { tagsReplaced, fileName: htmlFile };
+                    })
+                  return rewriteHTMLFile
+                });
+
+                readFilePromises.push(readHTMLFile)
+              }
+
+              return Promise.allSettled(readFilePromises)
+            }).then(replacements => {
+              console.log("Replacements", typeof replacements, replacements)
+
+              replacements.filter((replacement) => {
+                replacement.status === "fulfilled"
+              }).sort((a, b) => {
+                  return a.tagsReplaced - b.tagsReplaced
+                });
+
+              for (const r of replacements) {
+                console.log(`${r.filename} - ${r.tagsReplaced}`)
+              }
+            });
+            // catch() is over here
+          </code>
+        </pre>
+        <p>
+          The main change we've made is to add
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled"
+            target="_blank"
+            ><code>Promise.allSettled</code></a
+          >. <code>Promise.allSettled</code> takes in an array of Promises and
+          returns a Promise that <em>returns</em> after all of tthe given
+          promises have either <em>fulfilled</em> or <em>rejected</em>. The next
+          <code>.then</code> after a <code>Promise.allSettled</code> will
+          receive a Promise describing the outcome of each of the given
+          Promises. In our case, we pass in <code>readFilePromises</code>. The
+          <code>replacements</code> parameter will be the return value from the
+          <code>readHTMLFile</code> Promise which has been changed to an Object
+          containing the file name and the number of replacements.
+        </p>
+        <p>
+          <code>Promise.allSettled</code> adds a <code>status</code> property to
+          each Promise which will either be the string
+          <code>"fulfilled"</code> or <code>"rejected"</code>. Use this property
+          filter out any "rejected" promises using the
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter"
+            target="_blank"
+            ><code>Array.filter</code></a
+          >
+          method. Then use
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/soort"
+            target="_blank"
+            ><code>Array.sort</code></a
+          >
+          to sort them and finally we can print them out.
+        </p>
+      </article>
+      <article id="promise-cleaning">
+        <h2>2. Cleaning Up Promise Code</h2>
+        <p>In the above code, there are 8 places where a Promise is created.</p>
+        <ol>
+          <li>fs.readdir</li>
+          <li>fs.readdir.then()</li>
+          <li>readHTMLFile</li>
+          <li>readHTMLFile.then()</li>
+          <li>fs.writeFile</li>
+          <li>fs.writeFile.then</li>
+          <li>Promise.all</li>
+          <li>fs.readdir.then().then()</li>
+        </ol>
+        <p>
+          Some of them are explicitly declared, others are not. As much as it's
+          important that a computer can understand your code, it's more
+          important for humans to be able to understand your code.
+          <strong>Code is meant for reading, not writing </strong>. So make sure
+          your code is readable. How do we make this code more digestible?
+          There's one simple trick, use functions. Functions are not only a way
+          to reuse code, they help you name code.
+        </p>
+        <pre id='ex-cleaned-promise-code'>
+          <code>
+            const filterHTMLFiles = function (allFilesInDirectory) {
+              const htmlFiles = [];
+              for (const fileNames of allFilesInDirectory) {
+                if (fileNames.endsWith(".html")) {
+                  htmlFiles.push(fileNames);
+                }
+              }
+            
+              return htmlFiles;
+            };
+            
+            const replaceTags = function (htmlFiles) {
+              const readFilePromises = [];
+              for (const htmlFile of htmlFiles) {
+                let tagsReplaced = fileContents.split("&lt;i&gt;").length;
+                const replacedContents = fileContents
+                  .replaceAll("&lt;i&gt;", "&lt;em&gt;")
+                  .replaceAll("&lt;/i&gt;", "&lt;/em&gt;");
+            
+                const rewriteHTMLFile = fs
+                  .writeFile(htmlFile, replacedContents)
+                  .then(() => {
+                    return { tagsReplaced, fileName: htmlFile };
+                  });
+            
+                readFilePromises.push(rewriteHTMLFile);
+              }
+            
+              return Promise.allSettled(readFilePromises);
+            };
+            
+            const printReplacements = function (replacements) {
+              console.log("Replacements", typeof replacements, replacements);
+              replacements
+                .filter((replacement) => {
+                  replacement.status === "fulfilled";
+                })
+                .sort((a, b) => {
+                  return a.tagsReplaced - b.tagsReplaced;
+                });
+            
+              for (const r of replacements) {
+                console.log(`${r.filename} - ${r.tagsReplaced}`);
+              }
+            };
+            
+            // this is where we synchronize all our promises
+            fs.readdir(directory)
+              .then(filterHTMLFiles)
+              .then(replaceTags)
+              .then(printReplacements);            
+          </code>
+        </pre>
+        <p>
+          Why is this code a bit more readable? We have distinct places to look
+          for bugs. Each function is separate from any other. We can verify that
+          the <code>printReplacements</code> function works without testing the
+          <code>replaceTags</code>. And most of all, the synchronization of
+          Promises is separate from the logic. Each function may or may not
+          return a Promise, but by wrapping the execution of the callback
+          function in <code>.then()</code>, we guarantee each function becomes
+          asynchronous. That's one less point of variability in our function, we
+          don't have to worry about whether code will be synchronous or
+          asynchronous.
+        </p>
+      </article>
+      <article id="promise-race">
+        <h2>3. Racing Promises</h2>
+        <p>
+          In some cases, you may want to have multiple Promises race against
+          each other. You want to know when at least one of the Promises is
+          either fulfilled or rejected. This
+          <strong>will not cancel</strong> any of the Promises. This technique
+          will only be useful for the program listening. If you're make 2
+          requests to a server and want only one of them to execute, this is not
+          the correct pattern. You'll want to synchronize the two Promises.
+        </p>
+        <p>
+          <strong> Once a Promise is started, it cannot be cancelled </strong>.
+          There are libraries that will help you ignore values, but remember
+          that HTTP is stateless so any two requests are not dependent on each
+          other. So what food is this pattern if you can't tell a server to
+          cancel a request?
+        </p>
+        <p>
+          Let's think about loading states. On a web page, humans will think a
+          <a
+            href="https://www.nngroup.com/articles/website-response-times/"
+            target="_blank"
+            >web page is fast if any user action gets a response within 100ms</a
+          >. But what happens if you request some data from a server but it
+          takes more than 100ms? You still want to show something, and that
+          something is often a loading state. We won't get into what loading
+          states should look like, but we can get into how to race loading
+          states. Because if the server responsds within 100ms, then you
+          probably don't want to show a loading state.
+        </p>
+        <p>
+          So one of the problems that racing Promises can help you solve is to
+          only display a loading state if an operation (in this case, making a
+          request to a server) is slow.
+        </p>
+        <pre id='ex-promise-race' data-line="20-21">
+          <code>
+            const setElementContents = (elementContents) => {
+              document.querySelector('.content-to-be-loaded').innerText = elementContents;
+            }
+
+            const makeRequest = (url) => {
+              return fetch(url).then((elementContents) => {
+                return elementContents;
+              });
+            };
+            
+            const useLoadingState = (time) => {
+              return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                  reject(makeLoadingState);
+                }, time);
+              });
+            };
+            
+            const getElementContents = makeRequest('my-server')
+            Promise.race([getElementContents, useLoadingState(150)]).then(setElementContents);
+            getElementContents.then(setElementContents)
+          </code>
+        </pre>
+        <p>
+          This code has a lot of things that are just glossed over, namely the
+          mechanics of each function. But we use
+          <code>Promise.race</code> to set the contents to winner of the race.
+          Since race will always resolve regardless of if the winning Promise
+          fulfills or rejects, we don't nede to have a <code>.catch()</code>.
+        </p>
+        <p>
+          Because we don't want to show a loading spinner forever. We will queue
+          up the getElementContents for whenever it's ready. This is safe to do
+          twice because once a promise fulfills or rejects, the value will never
+          change.
+        </p>
+        <p>
+          <code>Promise.race</code> does have a sibling called
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/any"
+            target="_blank"
+            ><code>Promise.any</code></a
+          >
+          which only resolves once on of the given Promises <em>fulfills</em>,
+          so it waits until one of the requests succeeds. If your Promises only
+          every <em>fulfill</em> or you want to make code wait for the first
+          <em>successful</em> response then <code>Promise.any</code> is more
+          suitable.
+        </p>
+      </article>
+      <a class="back-to-top" href="#top">Back to Top</a>
+    </main>
+  </body>
+</html>

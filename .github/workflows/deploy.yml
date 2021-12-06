@@ -30,7 +30,7 @@ jobs:
 #           tar -cvf deploy.tar ../build/
 
       - name: ssh-deploy
-        uses: easing-themes/ssh-deploy@main
+        uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
           ARGS: "-rltgoDzvO"

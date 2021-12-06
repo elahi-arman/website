@@ -36,5 +36,5 @@ jobs:
           ARGS: "-rltgoDzvO"
           SOURCE: ${{ env.GITHUB_WORKSPACE }}
           REMOTE_HOST: ${{ secrets.HOST }}
-          REMOTE_USER: ${{ secrets.USER }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: "/var/www/html"

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>COEN 11 - Random Numbers</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dosis&family=Zen+Kurenaido&family=Fira+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/vendor/prism/prism.css" />
+    <link rel="stylesheet" href="/styles/reset.css" />
+    <link rel="stylesheet" href="/styles/base.css" />
+    <link rel="stylesheet" href="/styles/prism-override.css" />
+
+    <script defer src="/vendor/prism/prism.js" data-manual></script>
+    <script defer src="/scripts/highlight.js"></script>
+  </head>
+  <body class="language-clike">
+    <main>
+      <h1>Generating Random Numbers</h1>
+
+      <article>
+        <h2>Overview</h2>
+        <p>
+          This page should teach you enough to be able to generate random
+          numbers in C. It's short because there really isn't too much to using
+          random numbers. This page assumes you know how to write code in a
+          C-ish language as well as how to write a Hello World C Program.
+        </p>
+
+        <h2>Generating a Single Random Number</h2>
+        <pre>
+            <code>
+            // import standard library functions
+            #include &lt;stdio.h&gt; 
+            #include &lt;stdlib.h&gt; 
+            #include &lt;time.h&gt;
+
+            int main() {
+                srand(time(NULL)); 
+                int random = rand(); 
+                printf("Random number: %d", random);
+            }
+            </code>
+      </pre>
+
+        <p>
+          The snippet above generates a random number between 0 and RAND_MAX and
+          then prints it out. The funciton call <code>rand()</code> does the
+          actual number generation. So if that's the most important line, what's
+          all the rest of the code?
+        </p>
+
+        <p>
+          In order to correctly use
+          <a
+            href="https://en.wikipedia.org/wiki/C_standard_library"
+            target="_blank"
+            >standard library functions</a
+          >, you need to include the proper header files. The ones I included
+          give (1) <code>printf</code> (2) <code>rand, srand</code> and (3)
+          <code>time</code>. If you don't include these, in most cases the
+          functions <em>should</em> still work but they'll be declared as
+          <code>int func();</code> instead of their correct declaration.
+        </p>
+
+        <p>
+          There's a secret about <code>rand()</code>: it's
+          <a
+            href="https://en.wikipedia.org/wiki/Pseudorandom_generator"
+            target="_blank"
+            >pseudo-random</a
+          >. In order to get a string of random numbers, we call
+          <code>srand()</code>. If you don't call it, then the pseudo-random
+          string will be seeded with the value of 1. Every time you use the same
+          seed, you get the same set of random values. Try taking out the srand
+          line, compiling the program, and then executing the program. You
+          should get back the same set of random numbers every time.
+        </p>
+
+        <p>
+          If we seeded the pseudo-random number generator with the same value on
+          every compilation, we'll get back the same set of random numbers. So
+          to make the values unique on every run, we must get a new number every
+          time we run the program. That means we can't give a value at compile
+          time and we can't use rand to seed the value either since the unseeded
+          rand will be the same for every compilation. One easy way to get a
+          unique number on every run is to use the current time!
+        </p>
+
+        <p>
+          UNIX timestamp is stored as an integer that's counting the number of
+          seconds that have elapsed since the Unix epoch. The Unix epoch is
+          <time datetime="1970-01-01T00:00:00Z"
+            >00:00:00 UTC 1 January 1970</time
+          >
+          (an arbitrary date). If you run the command <code>date +%s</code> in
+          your terminal, you can see the current UNIX timestamp. Every second,
+          it'll increment, so that gives us a unique number (as long as the
+          program isn't run in the same second). To get the UNIX timestamp, we
+          can use the <code>time()</code> function. We're not going to go into
+          the <code>NULL</code> just yet though since we haven't gotten to that
+          material.
+        </p>
+
+        <p>
+          And that should explain all the nitty gritty details of that code,
+          excluding the presumed knowledge of C and printf.
+        </p>
+
+        <h2>Changing the bounds of the number</h2>
+
+        <p>
+          Getting a number between 0 and RAND_MAX is a lot. But there is a way
+          to add bounds to a given number. If you want to set a lower bound, you
+          can add to whatever value is returned from <code>rand()</code>
+        </p>
+
+        <pre>
+          <code>
+          int random = rand() + 6
+          </code>
+    </pre>
+
+        <p>
+          Now, the bounds are 6 and RAND_MAX + 6. First
+          <code>rand()</code> generatets a number between 0 and RAND_MAX, then
+          we add 6 to the value. And if we want to set an upper bound we can use
+          the modulo operator <code>%</code>
+        </p>
+
+        <p>
+          Modulo gives the remainder of a division operation. So if you do
+          <code>x % 5</code>, this is guaranteed to give you a number between 0
+          and 4. Hopefully this is enouogh to convince you that the modulo
+          operator always returns a number from 0 to X-1. You can start to tsee
+          the repetition for yourself, but I'm not going to drag it out too
+          long.
+        </p>
+
+        <ul>
+          <li>0 / 5 = 0, remainder 0</li>
+          <li>1 / 5 = 0, remainder 1</li>
+          <li>2 / 5 = 0, remainder 2</li>
+          <li>3 / 5 = 0, remainder 3</li>
+          <li>4 / 5 = 0, remainder 4</li>
+          <li>5 / 5 = 1, remainder 0</li>
+          <li>6 / 5 = 1, remainder 1</li>
+        </ul>
+
+        <p>
+          So to give both a lower and an upper bound, you can use the
+          combination of <code>+</code> and <code>%</code>. In this next bit of
+          code, we'll get a random number between 6 and 16.
+        </p>
+
+        <pre>
+          <code>
+          int random = (rand() % 10) + 6
+          </code>
+    </pre>
+
+        <h2>Exercise</h2>
+        <ul>
+          <li>
+            Write a function which takes in 2 integer parameters, upper and
+            lower bound, and returns a random number between the boundaries. You
+            can assume the pseudo-random number generator has been seeded.
+          </li>
+        </ul>
+      </article>
+    </main>
+  </body>
+</html>

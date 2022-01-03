@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>COEN 11 - VIMRC</title>
+
+      <link
+        href="https://fonts.googleapis.com/css2?family=Dosis&family=Zen+Kurenaido&family=Fira+Mono&display=swap"
+        rel="stylesheet"
+      />
+      <link rel="stylesheet" href="/vendor/prism/prism.css" />
+      <link rel="stylesheet" href="/styles/reset.css" />
+      <link rel="stylesheet" href="/styles/base.css" />
+      <link rel="stylesheet" href="/styles/prism-override.css" />
+
+      <script defer src="/vendor/prism/prism.js" data-manual></script>
+      <script defer src="/scripts/highlight.js"></script>
+
+      <style>
+
+
+      @media only screen and (min-width: 768px) {
+        main {
+          max-width: 90%;
+          min-width: 750px;
+          width: 168rem;
+        }
+
+        main > * {
+          margin: auto;
+          width: 60%;
+          min-width: 750px;
+        }
+
+        article > * {
+          margin-top: 2rem;
+        }
+
+      </style>
+
+    </head>
+      <body class="language-bash">
+      <main>
+        <h1>A Minimal VIMRC</h1>
+
+        <article>
+          <p>
+            This is hopefully one of the first pages about VIM that I'll write. There's
+            tons of great resources on how to use VIM (like vimtutor) but this should
+            get you up and running with a nice VIM setup.
+          </p>
+
+          <pre>
+              <code>
+              "" Syntax specific things
+              syntax enable                   " show syntax highlighting
+              set autoindent
+              set cindent
+              set number                      " show line numbers
+              set showmatch                   " show matching braces
+
+              "" Whitespace
+              set nowrap                      " don't wrap lines
+              set tabstop=2 shiftwidth=2      " a tab is two spaces (or set this to 4)
+              set expandtab                   " use spaces, not tabs (optional)
+              set backspace=indent,eol,start  " backspace through everything in insert mode
+
+              "" Searching
+              set hlsearch                    " highlight matches
+              set incsearch                   " incremental searching
+              set ignorecase                  " searches are case insensitive...
+              set smartcase                   " ... unless they contain at least one capital letter
+              </code>
+          </pre>
+      </article>
+    </main>
+  </body>
+</html>

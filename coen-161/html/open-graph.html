@@ -5,15 +5,27 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Enhancing Link Previews- COEN 161</title>
 
-    <meta property="og:title" content="Enhancing Link Previews"></meta>
-    <meta property="og:type" content="article"></meta>
-    <meta property="og:description" content="Learn to make your shared
-        webpages standout using OpenGraph."></meta>
-    <meta property="og:image" content="https://aelahi.dev/coen-161/html/images/mailbox.jpg"></meta>
-    <meta property="og:url" content="https://aelahi.dev/coen-161/html/open-graph.html"></meta>
-    <meta property="og:site_name" content="Arman's Asinine and Untrustworthy Thoughts">
-    <meta name="twitter:card" content="summary_large_image"></meta>
-    <meta name="twitter:creator" content="@therawrmane"></meta>
+    <meta property="og:title" content="Enhancing Link Previews" />
+    <meta property="og:type" content="article" />
+    <meta
+      property="og:description"
+      content="Learn to make your shared
+        webpages standout using OpenGraph."
+    />
+    <meta
+      property="og:image"
+      content="https://aelahi.dev/coen-161/html/images/mailbox.jpg"
+    />
+    <meta
+      property="og:url"
+      content="https://aelahi.dev/coen-161/html/open-graph.html"
+    />
+    <meta
+      property="og:site_name"
+      content="Arman's Asinine and Untrustworthy Thoughts"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:creator" content="@therawrman" />
 
     <link
       href="https://fonts.googleapis.com/css2?family=Dosis&family=Zen+Kurenaido&family=Fira+Mono&display=swap"
@@ -26,8 +38,133 @@
 
     <script defer src="/vendor/prism/prism.js" data-manual></script>
     <script defer src="/scripts/highlight.js"></script>
-  </head>
-  <body>
 
+    <style>
+      .bad-link-preview {
+        width: min-content;
+        border-radius: 3rem;
+        background-color: #eee;
+        padding: 0.5rem 1rem;
+      }
+    </style>
+  </head>
+
+  <body>
+    <article>
+      <p>
+        Have you shared a link and it almost looks sketchy? It shows up just as
+        a little gray bubble. You see the preview and just a little gray bubble
+        appears with no information.
+        <figure>
+          <figcaption></figcaption>
+          <div class="bad-link-preview">aelahi.dev</div>
+        </figure>
+        Why doesn't it expand like reputable sites? It feels like I may be
+        bombarded with adds when I click that link. Don't worry, it's not really
+        a liink.
+      </p>
+      <h1>How do I make that link preview beautiful?</h1>
+      <p>
+        When GUIs like iMessage or Twitter or even Facebook encounter webpages,
+        they download the page in the background. If your webpage includes
+        certain HTML tags, those applications interpret the tags to show a
+        richer preview of a link.
+      </p>
+      <p>
+        Facebook created the
+        <a href="https://opengraphprotocol.org/" target="_blank">
+          Open Graph Protocol
+        </a>
+        to turn a webpage into a
+        <quote> &quot;rich object in a social graph&quot; </quote>. By inserting
+        <code>&lt;meta&gt;</code> tags in the <code>&lt;head&gt;</code> of a
+        document, you can annotate your webpage.
+      </p>
+      <p>
+        To get the richer link previews, you need to add 4 tags to your HTML.
+      </p>
+      <pre>
+        <!-- Source = https://opengraphprotocol.org/ -->
+        <code lang="html">
+          <!-- Title = The title of the Webpage-->
+          <meta property="og:title" content="The Rock" />
+          <!-- 
+            Type = The type of content being displayed. There's only certain
+            values that can be shown here
+          -->
+          <meta property="og:type" content="video.movie" />
+          <!-- URL = The url thsi content can be found at (without any redirects)-->
+          <meta property="og:url" content="https://www.imdb.com/title/tt0117500/" />
+          <!-- 
+            Image = An accompanying image which complements the webpage. Maybe something
+            like a movie poster or a random stock image or a meme.
+          -->
+          <meta property="og:image" content="https://ia.media-imdb.com/images/rock.jpg" />
+        </code>
+      </pre>
+      <h2>Why should we respect Facebook's Protocol?</h2>
+      <p>
+        You don't have to, but any technology which can preview links will show
+        your link as a dingy gray bubble. There was one notable competitor,
+        Twitter Cards. But personally, I think their downfall was in the naming.
+        They also used <code>&lt;meta&gt;</code> tags but prefixed them with
+        <code>twitter:</code>. Why would I add Twitter specific tags? Does that
+        mean if a new Social Media platform comes on, I'd have to adopt their
+        tags? Seems like a lot of work. Oh but the Open Graph tags are open, so
+        anyone can use them.
+      </p>
+      <p>
+        To get your links to show up properly on Twitter, you need one more tag:
+      </p>
+      <pre>
+          <code lang="html">
+            <meta name="twitter:card" content="summary_large_image" />
+          </code>
+        </pre>
+      <p>
+        One slight but different is that Twitter users the
+        <code>name</code> property but OpenGraph uses the
+        <code>property</code> property.
+      </p>
+
+      <h1>Should I always use a link preview?</h1>
+      <p>
+        Like all things in Computer Science, it depends. Although we don't know
+        the specifics of how each proprietary link previewer works, there could
+        be bugs in the code that generates a link preview. What if the preview
+        downloads an entire webpage and that webpage is 50GB? That's a lot of
+        data. What if the webpage leaks sensitive information? You don't really
+        know what you're getting when iMessage decides to show a link preview.
+      </p>
+      <p>
+        I'd hope that no link previewers execute any JavaScript that's included
+        in a page. The OpenGraph specification is pretty strict on which tags
+        are meaningful, but people are smart. With the proliferation of these
+        rich links, I can almost guarantee that something bad will happen.
+      </p>
+      <h1>Further Reading</h1>
+      <ul>
+        <li>
+          <a href="https://schema.org/docs/gs.html">Schema.org and Microdata</a>
+        </li>
+      </ul>
+      <h1>Sources</h1>
+      <ul>
+        <li>
+          <a
+            href="https://developer.apple.com/library/archive/technotes/tn2444/_index.html"
+            target="_blank"
+          >
+            Best Practices for Link Previews in iMessage
+          </a>
+          <a
+            href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/guides/getting-started"
+            target="_blank"
+          >
+            Showing Cards on Twitter
+          </a>
+        </li>
+      </ul>
+    </article>
   </body>
-</html> 
+</html>

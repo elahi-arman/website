@@ -49,21 +49,40 @@
     </style>
   </head>
 
-  <body>
-    <article>
-      <p>
-        Have you shared a link and it almost looks sketchy? It shows up just as
-        a little gray bubble. You see the preview and just a little gray bubble
-        appears with no information.
-        <figure>
-          <figcaption></figcaption>
-          <div class="bad-link-preview">aelahi.dev</div>
-        </figure>
-        Why doesn't it expand like reputable sites? It feels like I may be
-        bombarded with adds when I click that link. Don't worry, it's not really
-        a liink.
-      </p>
-      <h1>How do I make that link preview beautiful?</h1>
+  <body class="language-js">
+    <article id="top">
+      <h1>Enhancing Webpages with Link Previews</h1>
+      <section class="flex-left-content">
+        <nav>
+          <h2>On this page</h2>
+          <ul id="toc">
+            <li>
+              <a href="#beautify-link-preview"
+                >How do I make that link preview beautiful?</a
+              >
+            </li>
+            <li><a href="#dangers">Should I always use a link preview?</a></li>
+            <li><a href="#whats-next">What Next?</a></li>
+            <li><a href="#further-reading">Further Reading</a></li>
+          </ul>
+        </nav>
+        <p>
+          Have you shared a link and it almost looks sketchy? It shows up just
+          as a little gray bubble. You see the preview and just a little gray
+          bubble appears with no information.
+          <figure>
+            <figcaption></figcaption>
+            <div class="bad-link-preview">aelahi.dev</div>
+          </figure>
+          Why doesn't it expand like reputable sites? It feels like I may be
+          bombarded with adds when I click that link. Don't worry, it's not
+          really a liink.
+        </p>
+      </section>
+
+      <h1 id="beautify-link-preview">
+        How do I make that link preview beautiful?
+      </h1>
       <p>
         When GUIs like iMessage or Twitter or even Facebook encounter webpages,
         they download the page in the background. If your webpage includes
@@ -102,7 +121,9 @@
           <meta property="og:image" content="https://ia.media-imdb.com/images/rock.jpg" />
         </code>
       </pre>
-      <h2>Why should we respect Facebook's Protocol?</h2>
+      <h2 id="why-use-open-graph">
+        Why should we respect Facebook's Protocol?
+      </h2>
       <p>
         You don't have to, but any technology which can preview links will show
         your link as a dingy gray bubble. There was one notable competitor,
@@ -127,7 +148,7 @@
         <code>property</code> property.
       </p>
 
-      <h1>Should I always use a link preview?</h1>
+      <h1 id="dangers">Should I always use a link preview?</h1>
       <p>
         Like all things in Computer Science, it depends. Although we don't know
         the specifics of how each proprietary link previewer works, there could
@@ -142,13 +163,13 @@
         are meaningful, but people are smart. With the proliferation of these
         rich links, I can almost guarantee that something bad will happen.
       </p>
-      <h1>Further Reading</h1>
+      <h1 id="whats-next">What's next?</h1>
       <ul>
         <li>
           <a href="https://schema.org/docs/gs.html">Schema.org and Microdata</a>
         </li>
       </ul>
-      <h1>Sources</h1>
+      <h1 id="further-reading">Furthr Reading</h1>
       <ul>
         <li>
           <a

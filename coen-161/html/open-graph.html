@@ -47,10 +47,16 @@
         background-color: #eee;
         padding: 0.5rem 1rem;
       }
+
+      .centered-image {
+        width: 320px;
+        margin-left: auto;
+        margin-right: auto;
+      }
     </style>
   </head>
 
-  <body class="language-js">
+  <body class="language-html">
     <main id="top">
       <h1>Rich Object Link Previews</h1>
       <section class="flex-left-content">
@@ -72,24 +78,20 @@
             Have you shared a Spotify link and seen a play button? Or maybe an
             article that has a beautiful preview image? To get that preview for
             your website, it takes only a handful of lines of code.
-
-            <figure>
-              <img
-                src="./images/open-graph-article-example.png"
-                aria-labelledby="open-graph-article-label"
-              />
-              <figcaption name="open-graph-article-label">
-                This is what the preview might look like for an article. This
-                example is from
-                <a
-                  href="https://maggieappleton.com/bidirectionals"
-                  target="_blank"
-                  >Maggie Appleton's website</a
-                >
-                where she writes about her work making beautiful digital
-                illustrations.
-              </figcaption>
-            </figure>
+            <img
+              class="centered-image"
+              src="./images/open-graph-article-example.png"
+              alt="Article prevew for A Short History of Bi-directional links."
+            />
+          </p>
+          <p>
+            This is what the preview might look like for an article. This
+            example is from
+            <a href="https://maggieappleton.com/bidirectionals" target="_blank"
+              >Maggie Appleton's website</a
+            >
+            where she writes about her work making beautiful digital
+            illustrations.
           </p>
         </div>
       </section>
@@ -114,29 +116,30 @@
       <p>
         To get the richer link previews, add 4 tags to your HTML. The first
         field,
-        <code>property</code> says what kinid of annotaton we'll be using. In
-        this example, it's <code>og</code> for OpenGraph and then the element
+        <code>property</code> specifies what kind of annotaton we'll be using.
+        In this example, it's <code>og</code> for OpenGraph and then the element
         the tag will describe. The <code>content</code> field is the value for
         that respective property.
       </p>
       <pre>
-        <!-- Source = https://opengraphprotocol.org/ -->
-        <code lang="html">
-          <!-- Title = The title of the Webpage-->
-          <meta property="og:title" content="The Rock" />
-          <!-- 
+          <!-- Source = https://opengraphprotocol.org/ -->
+          <code>
+          
+          &lt;!-- Title = The title of the Webpage-->
+          &lt;meta property="og:title" content="The Rock" /&gt;
+          &lt;!-- 
             Type = The type of content being displayed. There's only certain
             values that can be shown here
-          -->
-          <meta property="og:type" content="video.movie" />
-          <!-- URL = The url thsi content can be found at (without any redirects)-->
-          <meta property="og:url" content="https://www.imdb.com/title/tt0117500/" />
-          <!-- 
+          --a&gt;
+          &lt;meta property="og:type" content="video.movie" /&gt;
+          &lt;!-- URL = The url thsi content can be found at (without any redirects)--&gt;
+          &lt;meta property="og:url" content="https://www.imdb.com/title/tt0117500/" /&gt;
+          &lt;!-- 
             Image = An accompanying image which complements the webpage. Maybe something
             like a movie poster or a random stock image or a meme.
-          -->
-          <meta property="og:image" content="https://ia.media-imdb.com/images/rock.jpg" />
-        </code>
+          --&gt;
+          &lt;meta property="og:image" content="https://ia.media-imdb.com/images/rock.jpg" /&gt;
+          </code>
       </pre>
       <p>
         There isn't too much left to talk about for link previews of articles.
@@ -149,8 +152,8 @@
         To get your links to show up properly on Twitter, you need one more tag:
       </p>
       <pre>
-          <code lang="html">
-            <meta name="twitter:card" content="summary_large_image" />
+          <code>
+          &lt;meta name="twitter:card" content="summary_large_image" /&gt;
           </code>
         </pre>
       <p>
@@ -182,17 +185,18 @@
         since we don't know exactly what makes Facebook tick, but other
         platforms may consume the OpenGraph properly.
       </p>
-
-      <figure>
+      <p>
         <img
+          class="centered-image"
           src="./images/open-graph-audio-example.png"
           alt="Cautious Clay's face with the title of the track Wildfire, his name, and a play button."
         />
-        <figcaption>
-          When you share Spotify links in iMessage, they show up with a play
-          button.
-        </figcaption>
-      </figure>
+        When you share Spotify links in iMessage, they show up with a play
+        button. Cool enough, but hitting the play button plays a preview of the
+        track. To make the audio available for all users, but only the whole
+        song available for Spotfify subscribers, the link preview only has a
+        snippet of a song. It's important for websites which
+      </p>
 
       <h1 id="dangers">Anything to be wary of?</h1>
       <p>

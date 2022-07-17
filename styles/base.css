@@ -24,12 +24,12 @@ main {
   main {
     padding: 2rem 4rem;
     max-width: 80%;
-    width: 168rem;
+    /* min-width: 168rem; */
   }
 
   main > * {
     margin: auto;
-    width: 60%;
+    width: 100%;
   }
 
   main section.flex-left-content,
@@ -55,7 +55,7 @@ main {
 
   .flex-right-content > :first-child {
     margin-left: auto;
-    width: 60%;
+    width: 75%;
     /* padding-right: 1rem; */
   }
 

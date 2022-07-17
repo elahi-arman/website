@@ -16,6 +16,7 @@
       property="og:image"
       content="https://aelahi.dev/coen-161/html/images/mailbox.jpg"
     />
+    <meta property="og:image:alt" content="A bright blue mailbox" />
     <meta
       property="og:url"
       content="https://aelahi.dev/coen-161/html/open-graph.html"
@@ -50,8 +51,8 @@
   </head>
 
   <body class="language-js">
-    <article id="top">
-      <h1>Enhancing Webpages with Link Previews</h1>
+    <main id="top">
+      <h1>Rich Object Link Previews</h1>
       <section class="flex-left-content">
         <nav>
           <h2>On this page</h2>
@@ -66,28 +67,39 @@
             <li><a href="#further-reading">Further Reading</a></li>
           </ul>
         </nav>
-        <p>
-          Have you shared a link and it almost looks sketchy? It shows up just
-          as a little gray bubble. You see the preview and just a little gray
-          bubble appears with no information.
-          <figure>
-            <figcaption></figcaption>
-            <div class="bad-link-preview">aelahi.dev</div>
-          </figure>
-          Why doesn't it expand like reputable sites? It feels like I may be
-          bombarded with adds when I click that link. Don't worry, it's not
-          really a liink.
-        </p>
+        <div>
+          <p>
+            Have you shared a Spotify link and seen a play button? Or maybe an
+            article that has a beautiful preview image? To get that preview for
+            your website, it takes only a handful of lines of code.
+
+            <figure>
+              <img
+                src="./images/open-graph-article-example.png"
+                aria-labelledby="open-graph-article-label"
+              />
+              <figcaption name="open-graph-article-label">
+                This is what the preview might look like for an article. This
+                example is from
+                <a
+                  href="https://maggieappleton.com/bidirectionals"
+                  target="_blank"
+                  >Maggie Appleton's website</a
+                >
+                where she writes about her work making beautiful digital
+                illustrations.
+              </figcaption>
+            </figure>
+          </p>
+        </div>
       </section>
 
-      <h1 id="beautify-link-preview">
-        How do I make that link preview beautiful?
-      </h1>
+      <h1 id="beautify-link-preview">How does it work</h1>
       <p>
         When GUIs like iMessage or Twitter or even Facebook encounter webpages,
-        they download the page in the background. If your webpage includes
-        certain HTML tags, those applications interpret the tags to show a
-        richer preview of a link.
+        they download the page in the background. If the webpage includes
+        certain HTML tags, the applications will parse those to show a richer
+        preview of a link.
       </p>
       <p>
         Facebook created the
@@ -100,7 +112,12 @@
         document, you can annotate your webpage.
       </p>
       <p>
-        To get the richer link previews, you need to add 4 tags to your HTML.
+        To get the richer link previews, add 4 tags to your HTML. The first
+        field,
+        <code>property</code> says what kinid of annotaton we'll be using. In
+        this example, it's <code>og</code> for OpenGraph and then the element
+        the tag will describe. The <code>content</code> field is the value for
+        that respective property.
       </p>
       <pre>
         <!-- Source = https://opengraphprotocol.org/ -->
@@ -121,18 +138,12 @@
           <meta property="og:image" content="https://ia.media-imdb.com/images/rock.jpg" />
         </code>
       </pre>
-      <h2 id="why-use-open-graph">
-        Why should we respect Facebook's Protocol?
-      </h2>
       <p>
-        You don't have to, but any technology which can preview links will show
-        your link as a dingy gray bubble. There was one notable competitor,
-        Twitter Cards. But personally, I think their downfall was in the naming.
-        They also used <code>&lt;meta&gt;</code> tags but prefixed them with
-        <code>twitter:</code>. Why would I add Twitter specific tags? Does that
-        mean if a new Social Media platform comes on, I'd have to adopt their
-        tags? Seems like a lot of work. Oh but the Open Graph tags are open, so
-        anyone can use them.
+        There isn't too much left to talk about for link previews of articles.
+        Twitter had a competing implementation of a similar graph concept, where
+        properties were prefixed with <code>twitter</code> instead of
+        <code>og</code>. Only one of the Twititer meta tags is still useful
+        since other major tech companies adopted the OpenGraph protocol.
       </p>
       <p>
         To get your links to show up properly on Twitter, you need one more tag:
@@ -148,30 +159,97 @@
         <code>property</code> property.
       </p>
 
-      <h1 id="dangers">Should I always use a link preview?</h1>
+      <p>
+        I like the way Twitter allows users to explicitly specify the way the
+        link should display. But personally, I don't thiink it stood a chance.
+        If developers add Twitter specific tags, will every Social Media
+        platform requirei their own set of tags? That would suck, we'd have to
+        continually update pages to take into account every random media
+        platform.
+      </p>
+
+      <h1 id="even-richer-experiences">Even richer experiences</h1>
+      <p>
+        The OpenGraph protocol doesn't have too much else defined within it.
+        Just like HTML is meant to go beyond pure text, OpenGraph can support
+        complementary audio and video. It's a
+        <a
+          href="https://developers.facebook.com/docs/sharing/webmasters/#video"
+          target="_blank"
+        >
+          bit finnicky</a
+        >
+        since we don't know exactly what makes Facebook tick, but other
+        platforms may consume the OpenGraph properly.
+      </p>
+
+      <figure>
+        <img
+          src="./images/open-graph-audio-example.png"
+          alt="Cautious Clay's face with the title of the track Wildfire, his name, and a play button."
+        />
+        <figcaption>
+          When you share Spotify links in iMessage, they show up with a play
+          button.
+        </figcaption>
+      </figure>
+
+      <h1 id="dangers">Anything to be wary of?</h1>
       <p>
         Like all things in Computer Science, it depends. Although we don't know
         the specifics of how each proprietary link previewer works, there could
         be bugs in the code that generates a link preview. What if the preview
         downloads an entire webpage and that webpage is 50GB? That's a lot of
-        data. What if the webpage leaks sensitive information? You don't really
-        know what you're getting when iMessage decides to show a link preview.
+        data, especially if you have limited or pay-as-you-go bandwidth.
       </p>
       <p>
-        I'd hope that no link previewers execute any JavaScript that's included
-        in a page. The OpenGraph specification is pretty strict on which tags
-        are meaningful, but people are smart. With the proliferation of these
-        rich links, I can almost guarantee that something bad will happen.
+        I'd hope that no link previewers execute JavaScript that's included in a
+        page. The OpenGraph specification is pretty strict on which tags are
+        meaningful, but malicious people will find a way.
       </p>
       <h1 id="whats-next">What's next?</h1>
-      <ul>
+      <p>
+        This is just one of the powers of HTML. None of this was included in the
+        initial specification of HTML. Because HTML has a minimal amount of
+        simplicity that can be built on top of, we get cool integrations like
+        this.
+      </p>
+      <p>
+        If this sort of stuff excites you, I'd look into Microdata (a play on
+        metadata) which Google uses to build out its Search Results. The more
+        you annotate your documents, the more computers can create a richer,
+        linked web.
+      </p>
+      <ul style="margin-bottom: 2rem">
         <li>
-          <a href="https://schema.org/docs/gs.html">Schema.org and Microdata</a>
+          <a href="https://schema.org/docs/gs.html" target="_blank"
+            >Schema.org Microdata for use in search engines</a
+          >
+        </li>
+        <li>
+          <a
+            href="https://www.w3.org/2010/02/rdfa/sources/rdfa-lite/"
+            target="_blank"
+          >
+            RDFa specification - How browsers interpret schema.org
+          </a>
         </li>
       </ul>
-      <h1 id="further-reading">Furthr Reading</h1>
+      <h1 id="sources">Sources</h1>
+      <p>
+        If you want to see where I got this information from, here's what I
+        consulted.
+      </p>
       <ul>
         <li>
+          <a
+            href="https://www.freecodecamp.org/news/how-to-avoid-the-shaming-look-your-site-has-on-twitter-and-facebook-f2e8f4be568d"
+            target="_blank"
+            >Another article that goes over these tags.
+          </a>
+          <a href="https://opengraphprotocol.org/" target="_blank">
+            Open Graph Protocol
+          </a>
           <a
             href="https://developer.apple.com/library/archive/technotes/tn2444/_index.html"
             target="_blank"
@@ -186,6 +264,6 @@
           </a>
         </li>
       </ul>
-    </article>
+    </main>
   </body>
 </html>
